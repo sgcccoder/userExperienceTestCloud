@@ -1,0 +1,180 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+    <head>
+		<meta charset="utf-8">
+		<meta name="author" content="zyl">
+		<link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap.min.css' %}"/> 
+		<link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap-theme.min.cs' %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static 'master/css/pikaday.css' %}"/>
+		<link rel="stylesheet" type="text/css" href="{% static 'master/css/my.css' %}"/>
+		
+		<script src= "{% static 'master/js/jquery-1.11.3.min.js' %}"></script>
+		<script src= "{% static 'master/js/bootstrap.min.js' %}"></script>
+		<script src= "{% static 'master/js/distpicker.data.js' %}"></script>
+		<script src= "{% static 'master/js/distpicker.js' %}"></script>
+    </head>
+    <body>
+		<title>增加巡检计划</title>
+		<!-- Fixed navbar -->
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+		    <div class="container">
+				<div id="navbar" class="navbar-collapse collapse">
+				  <ul class="nav navbar-nav">
+				    <li class="dropdown">
+						<a aria-expanded="false" aria-haspopup="true" role="button" data-toggle="dropdown" class="dropdown-toggle">巡检计划 <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li>
+								<a href="/plans">巡检计划列表</a>
+							</li>
+							<li>
+								<a href="/addplan">增加巡检计划</a>
+							</li>							
+						</ul>	
+					</li>
+				    <li class="dropdown">
+						<a aria-expanded="false" aria-haspopup="true" role="button" data-toggle="dropdown" class="dropdown-toggle">巡检套件 <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li>
+								<a href="/testsuites">巡检套件列表</a>
+							</li>
+							<li>
+								<a href="/addtestsuite">增加巡检套件</a>
+							</li>							
+						</ul>	
+					</li>
+				    <li class="dropdown">
+						<a aria-expanded="false" aria-haspopup="true" role="button" data-toggle="dropdown" class="dropdown-toggle">巡检用例 <span class="caret"></span></a>
+						<ul class="dropdown-menu">
+							<li>
+								<a href="/testcases">巡检用例列表</a>
+							</li>
+							<li>
+								<a href="/addtestcase">增加巡检用例</a>
+							</li>							
+						</ul>	
+					</li>					
+				  </ul>
+				</div><!--/.nav-collapse -->
+		    </div>
+		</nav>
+		<div class="first">
+		</div>
+		<div class="page-header">
+			<h3>增加巡检计划</h3>
+		</div>
+		<form class="form-horizontal"  method="POST" action="/createplan/">
+			<div class="form-group">
+				<label for="test_suite_name" class="col-md-1 control-label">巡检套件</label>
+				<div class="col-md-2">
+					<select name="test_suite_name" id="test_suite_name" >
+						<option value="" selected>—— 巡检套件——</option>
+						{% for testsuite in testsuites %}
+						<option value={{testsuite.name}}>{{testsuite.name}}</option>
+						{% endfor %}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="executor" class="col-md-1 control-label">巡检人姓名</label>
+				<div class="col-md-2">
+					<input type="text"  name="executor" id="executor" >
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-md-1 control-label">地区</label>
+				<div class="col-md-4">
+					<div class="distpicker1">
+						<select name="province" id="province"></select>
+						<select name="city" id="city"></select>
+					</div> 
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-md-1 control-label">执行类型</label>
+				<div class="col-md-9">
+					  <label><input type="radio" name="exectype"  value="now" checked onclick="hide()">立即巡检</label>
+					  <label><input type="radio" name="exectype"  value="period" onclick="show()">周期巡检</label>
+				</div>
+			</div>
+			<div class="form-group" id="exectime" style="display:none;">
+				<label class="col-md-1 control-label">巡检时间</label>
+				<div class="col-md-2">
+					<select name="hour" id="hour" >
+						<option value="0" selected>0</option>
+						{% for hour in hours %}
+						<option value={{hour}}>{{hour}}</option>
+						{% endfor %}
+					</select>:
+					<select name="minute" id="minute" >
+						<option value="0" selected>0</option>
+						{% for minute in minutes %}
+						<option value={{minute}}>{{minute}}</option>
+						{% endfor %}
+					</select>				
+				</div>				
+			</div>
+			<div class="form-group" id="repeattype" style="display:none;">
+			    <label class="col-md-1 control-label">重复类型</label>			
+				<label>
+					<input type="checkbox" name="repeat_type" value="1"/>
+					每周一
+				</label>
+				<label>
+					<input type="checkbox" name="repeat_type" value="2"/>
+					每周二
+				</label>
+				<label>
+					<input type="checkbox" name="repeat_type" value="3"/>
+					每周三
+				</label>
+				<label>
+					<input type="checkbox" name="repeat_type" value="4"/>
+					每周四
+				</label>
+				<label>
+					<input type="checkbox" name="repeat_type" value="5"/>
+					每周五
+				</label>
+				<label>
+					<input type="checkbox" name="repeat_type" value="6"/>
+					每周六
+				</label>
+				<label>
+					<input type="checkbox" name="repeat_type" value="7"/>
+					每周日
+				</label>			
+			</div>
+				<div class="col-md-2">
+					<button type="submit" class="btn btn-primary" >完成</button>
+				</div> 			
+			</div>			 
+		</form>
+<!--
+	{% for field in form %}
+    <div class="fieldWrapper">
+        {{ field.errors }}
+        {{ field.label_tag }} {{ field }}
+    </div>
+	{% endfor %}
+-->
+		<script type="text/javascript">
+			//初始化地区选择
+			$(".distpicker1").distpicker({
+			autoSelect: false
+			});
+			
+			function show(){
+				document.getElementById("exectime").style="display:inline;"
+				document.getElementById("repeattype").style="display:inline;"
+			}
+
+			function hide(){
+				document.getElementById("exectime").style="display:none;"
+				document.getElementById("repeattype").style="display:none;"
+			}
+			
+	    </script>
+
+    </body>
+</html>

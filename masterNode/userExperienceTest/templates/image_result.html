@@ -1,0 +1,62 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+    <head>
+		<meta charset="utf-8">
+		<meta name="author" content="zyl">
+    </head>
+    <body>
+		<title>用户体验测试云平台</title>
+		<!-- Fixed navbar -->
+		<nav class="navbar navbar-inverse navbar-fixed-top">
+		    <div class="container">
+				<div class="navbar-header">
+				  <a class="navbar-brand" href="#">用户体验测试云平台</a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+				  <ul class="nav navbar-nav">
+					<li class="active"><a href="/result">今日测试报告</a></li>
+					<li><a href="/export">导出测试报告</a></li>
+					<li><a href="/cluster">集群状态</a></li>
+				  </ul>
+				</div><!--/.nav-collapse -->
+		    </div>
+		</nav>
+		<h3>图像显示详情</h3>
+        <div id="imagereportlist">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th width="20%">用例名称</th>
+                    <th width="30%">正确图片</th>
+                    <th width="30%">用例截图</th>
+                    <th width="20%">图像状态</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for image_report in image_reports %}
+                    <tr>
+                        <td>{{ image_report.name }}</td>
+                        <td>
+                            <img height="150px" src={{image_report.correct_image_path}} alt="正确图片"/>
+                        </td>
+                        <td>
+                            <img height="150px" src={{image_report.real_image_path}} alt="用例截图"/>
+                        </td>
+                        <td>
+                            {% if image_report.image_status %}正常{% else %}异常{% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap.min.css' %}"/>
+        <link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap-theme.min.cs' %}"/>
+
+        <script src= "{% static 'master/js/jquery-1.11.3.min.js' %}"></script>
+        <script src= "{% static 'master/js/bootstrap.min.js' %}"></script>
+
+    </body>
+</html>
