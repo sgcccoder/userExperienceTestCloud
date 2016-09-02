@@ -79,7 +79,7 @@ class Parser:
                     starttime = datetime.datetime.strptime(starttime_str, "%Y%m%d %H:%M:%S.%f")
                     endtime = datetime.datetime.strptime(endtime_str, "%Y%m%d %H:%M:%S.%f")
                     duration_time = (endtime - starttime).seconds
-                    print duration_time
+                    # print duration_time
                     if duration_time <= T1:
                         satisfy_num += 1
                     elif duration_time <= T2:
@@ -88,9 +88,9 @@ class Parser:
                     total_num += 1
 
             apdex_index = (satisfy_num + tolerant_num * 0.5) / total_num
-            self.logger.info('apdex :' + apdex_index)
+            self.logger.info('apdex :' + str(apdex_index))
 
         except Exception, e:
-            self.logger.error("Error: cannot parse file: " + file_path)
+            self.logger.error(e)
 
         return apdex_index

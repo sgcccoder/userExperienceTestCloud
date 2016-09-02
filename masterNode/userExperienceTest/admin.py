@@ -2,7 +2,7 @@
 from django.contrib import admin
 
 from .models import Report
-from .models import System, TestCase, TestSuite, Task, Plan, CompatibilityScript, ImageReport
+from .models import System, TestCase, TestSuite, Task, Plan, CompatibilityScript, ImageReport, ImageInfo, ReportPerBrowser
 
 
 # class ReportAdmin(admin.ModelAdmin):
@@ -32,3 +32,6 @@ admin.site.register(Task)
 admin.site.register(Plan)
 admin.site.register(CompatibilityScript)
 admin.site.register(ImageReport)
+admin.site.register(ImageInfo)
+admin.site.register(ReportPerBrowser)
+

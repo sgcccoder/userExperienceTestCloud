@@ -13,28 +13,33 @@ class ImageProcess:
     def __init__(self, logger):
         self.logger = logger
 
-    def process(self, correct_img_dir, report_dir, image_name, test_id, browser):
-        self.logger.info(u'开始图像处理')
-        correct_image_path = os.path.join(correct_img_dir, image_name)
-        correct_img = Image.open(correct_image_path)
-        real_image_path = os.path.join(report_dir, image_name)
-        real_image = Image.open(real_image_path)
-        image_status = self.similarity_with_split(correct_img, real_image)
-        self.logger.info(u'图像状态' + str(image_status))
+    def process(self, image1_path, image2_path):
+        image1 = Image.open(image1_path)
+        image2 = Image.open(image2_path)
+        return self.similarity_with_split(image1, image2)
 
-        real_image_path = real_image_path.replace(settings.MEDIA_ROOT, '')
-        real_image_path = default_storage.url(real_image_path)
-        correct_image_path = correct_image_path.replace(settings.MEDIA_ROOT, '')
-        correct_image_path = default_storage.url(correct_image_path)
-        image_report_instance = ImageReport(test_id=test_id,
-                                            browser=browser,
-                                            name=image_name,
-                                            correct_image_path=correct_image_path,
-                                            real_image_path=real_image_path,
-                                            image_status=image_status)
-        image_report_instance.save()
-        self.logger.info(u'截图相关信息已存入数据库')
-        return image_status
+    # def process(self, correct_img_dir, report_dir, image_name, test_id, browser):
+    #     self.logger.info(u'开始图像处理')
+    #     correct_image_path = os.path.join(correct_img_dir, image_name)
+    #     correct_img = Image.open(correct_image_path)
+    #     real_image_path = os.path.join(report_dir, image_name)
+    #     real_image = Image.open(real_image_path)
+    #     image_status = self.similarity_with_split(correct_img, real_image)
+    #     self.logger.info(u'图像状态' + str(image_status))
+    #
+    #     real_image_path = real_image_path.replace(settings.MEDIA_ROOT, '')
+    #     real_image_path = default_storage.url(real_image_path)
+    #     correct_image_path = correct_image_path.replace(settings.MEDIA_ROOT, '')
+    #     correct_image_path = default_storage.url(correct_image_path)
+    #     image_report_instance = ImageReport(test_id=test_id,
+    #                                         browser=browser,
+    #                                         name=image_name,
+    #                                         correct_image_path=correct_image_path,
+    #                                         real_image_path=real_image_path,
+    #                                         image_status=image_status)
+    #     image_report_instance.save()
+    #     self.logger.info(u'截图相关信息已存入数据库')
+    #     return image_status
 
     def similarity(self, image1, image2):
         g = image1.histogram()
@@ -82,4 +87,5 @@ class ImageProcess:
         y = size[1] / part_size[1]
 
         pre = float(sub_data) / (x * y)
+        self.logger.info(str(pre))
         return True if pre > 0.9 else False

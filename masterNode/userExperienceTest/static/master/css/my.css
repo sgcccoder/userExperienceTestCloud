@@ -21,12 +21,20 @@ table, th, tr, td{
    text-align:center;
 }
 
-tr.good{
+td.good{
   background:  rgb(153, 255, 102);
 }
 
-tr.bad{
+td.bad{
   background: rgb(254, 67, 101);
+}
+
+tr.good{
+    background:  rgb(153, 255, 102);
+}
+
+tr.bad{
+    background: rgb(254, 67, 101);
 }
 
 .pagination{

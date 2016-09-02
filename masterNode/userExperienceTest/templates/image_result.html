@@ -4,11 +4,15 @@
     <head>
 		<meta charset="utf-8">
 		<meta name="author" content="zyl">
+        <link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap.min.css' %}"/>
+        <link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap-theme.min.cs' %}"/>
+        <link rel="stylesheet" type="text/css" href="{% static 'master/dist/css/lightbox.min.css' %}"/>
+        <link rel="stylesheet" type="text/css" href="{% static 'master/css/my.css' %}"/>
     </head>
     <body>
 		<title>用户体验测试云平台</title>
 		<!-- Fixed navbar -->
-		<nav class="navbar navbar-inverse navbar-fixed-top">
+		<nav class="navbar navbar-inverse">
 		    <div class="container">
 				<div class="navbar-header">
 				  <a class="navbar-brand" href="#">用户体验测试云平台</a>
@@ -27,36 +31,34 @@
             <table class="table table-bordered">
                 <thead>
                 <tr>
-                    <th width="20%">用例名称</th>
-                    <th width="30%">正确图片</th>
-                    <th width="30%">用例截图</th>
-                    <th width="20%">图像状态</th>
+                    <th width="25%">IE8</th>
+                    <th width="25%">IE10</th>
+                    <th width="25%">FireFox</th>
+                    <th width="25%">Chrome</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for image_report in image_reports %}
-                    <tr>
-                        <td>{{ image_report.name }}</td>
-                        <td>
-                            <img height="150px" src={{image_report.correct_image_path}} alt="正确图片"/>
-                        </td>
-                        <td>
-                            <img height="150px" src={{image_report.real_image_path}} alt="用例截图"/>
-                        </td>
-                        <td>
-                            {% if image_report.image_status %}正常{% else %}异常{% endif %}
-                        </td>
+                {% for image_report_info in image_report_info_list %}
+                {% if image_report_info.image_status %}
+                <tr class="good">
+                {% else %}
+                <tr class="bad">
+                {% endif %}
+                    {% for image_url in image_report_info.image_urls %}
+                    <td>
+                        <a class="example-image-link" href={{image_url}} data-lightbox="截图">
+                        <img height="150px" src={{image_url}} alt="截图"/>
+                    </td>
+                    {% endfor %}
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap.min.css' %}"/>
-        <link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap-theme.min.cs' %}"/>
-
         <script src= "{% static 'master/js/jquery-1.11.3.min.js' %}"></script>
         <script src= "{% static 'master/js/bootstrap.min.js' %}"></script>
+        <script src= "{% static 'master/dist/js/lightbox-plus-jquery.min.js' %}"></script>
 
     </body>
 </html>

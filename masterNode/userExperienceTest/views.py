@@ -22,9 +22,14 @@ from masterNode import settings
 from .cluster import Cluster
 from .forms import ReportForm, TestCaseForm, TestSuiteForm, PlanForm, CompatibilityTestScriptForm, CompatibilityTestForm
 from .image_process import ImageProcess
-from .models import Report, System, TestCase, Plan, Task, TestSuite, CompatibilityScript, ImageReport
+from .models import Report, System, TestCase, Plan, Task, TestSuite, CompatibilityScript, ReportPerBrowser, ImageInfo, \
+    ImageReport
 from .my_proxy import MyProxy
 from .parser import Parser
+from .report_manager import ReportManager
+from .general_report import GeneralReport
+from .detail_report import DetailReport
+from .image_report_info import ImageReportInfo
 
 # Create your views here.
 
@@ -32,7 +37,7 @@ from .parser import Parser
 REPORT_PER_PAGE = 50
 
 # 日志根目录
-LOG_ROOT = 'C:\\autoInspectionLog'
+LOG_ROOT = 'C:\\testCloudLog'
 
 # 当前时间
 current = time.strftime("%Y%m%d%H%M%S", time.localtime(time.time()))
@@ -55,6 +60,9 @@ scripts = {}
 # 超时时间，单位是秒
 timeout = 60
 
+# 报告处理器
+report_manager = ReportManager(logger)
+
 
 # 用户体验测试云服务的主页
 def home(request):
@@ -72,67 +80,7 @@ def upload(request):
     return HttpResponse(html)
 
 
-#     处理巡检人员提交的巡检报告文件
-# f表示提交的报告压缩文件
-# system表示巡检的系统
-# province表示所在的省
-# reporter表示提交人员
-def handle_uploaded_file(f, system, province, reporter, test_id, browser):
-    report_path = ""
-    fail_num = 0
-    pass_num = 0
-    apdex_index = 0.0
-    display_status = True
-    # 在服务器上创建路径存储巡检人员提交的报告
-    try:
-        report_dir = settings.MEDIA_ROOT + system + os.path.sep + province + os.path.sep + reporter + time.strftime('\\%Y\\%m\\%d\\%H%M%S\\')
-        correct_img_dir = settings.MEDIA_ROOT + system + os.path.sep + 'correct'
-        if not os.path.exists(report_dir):
-            os.makedirs(report_dir)
-        zip_file = open('report.zip', 'wb+')
-        for chunk in f.chunks():
-            zip_file.write(chunk)
-        zip_file.close()
-        report_zip = zipfile.ZipFile('report.zip')
-        for filename in report_zip.namelist():
-            data = report_zip.read(filename)
-            filename = os.path.split(filename)[1]
-            target_path = os.path.join(report_dir, filename)
-            target_file = open(target_path, 'wb+')
-            target_file.write(data)
-            target_file.close()
-            logger.info(filename + u'已上传到服务器' + target_path)
-            if filename == 'report.html':
-                logger.info(u'找到report.html')
-                report_path = os.path.join(report_dir, filename)
-                report_path = report_path.replace(settings.MEDIA_ROOT, '')
-                # 抽取通过测试的数目和未通过的数目
-                pattern = re.compile(r'"fail":\d+,"label":"All Tests","pass":\d+')
-                match = pattern.search(data)
-                line = match.group()
-                nums = re.findall(r'\d+', line)
-                fail_num = int(nums[0])
-                pass_num = int(nums[1])
-                logger.info(u'抽取通过测试的数目和未通过的数目')
-            elif filename == 'output.xml':
-                logger.info(u'找到output.xml')
-                output_xml_path = os.path.join(report_dir, filename)
-                parser = Parser(logger)
-                apdex_index = parser.calculate_apdex(output_xml_path)
-
-            elif filename.endswith('.png'):
-                logger.info(u'找到' + filename)
-                image_processor = ImageProcess(logger)
-                image_name = filename
-                image_status = image_processor.process(correct_img_dir, report_dir, filename, test_id, browser)
-                if not image_status:
-                    display_status = False
-    except Exception, e:
-        logger.error(e)
-    return report_path, fail_num + pass_num, pass_num, apdex_index, display_status
-
-
-# 完成巡检报告上传工作
+# 完成用户体验测试报告上传和处理工作
 @csrf_exempt
 def upload_report(request):
     if request.method == 'POST':
@@ -142,24 +90,16 @@ def upload_report(request):
             report_info = u'测试编号：' + data['test_id'] + u'，浏览器：' + data['browser'] + u'，报告人：' + data[
                 'reporter'] + u'， 系统：' + data['system'] + u'， 省：' + data['province'] + u'， 市：' + data['city']
             logger.info(report_info)
-            # 获得巡检报告在服务端的存储路径，测试功能点数目，通过的数目
-            report_path, total_num, pass_num, apdex, display_status = handle_uploaded_file(request.FILES['zip'],
-                                                                                           data['system'],
-                                                                                           data['province'],
-                                                                                           data['reporter'],
-                                                                                           data['test_id'],
-                                                                                           data['browser'])
-            # 获得访问巡检报告文件的url
-            report_url = default_storage.url(report_path)
-            logger.info(u'总测试数目：' + str(total_num) + u'  通过测试的数目：' + str(pass_num))
-            # 创建巡检报告实例
-            instance = Report(test_id=data['test_id'], reporter=data['reporter'], system=data['system'],
-                              province=data['province'], city=data['city'], total_num=total_num, pass_num=pass_num,
-                              report_path=report_url, apdex=apdex, browser=data['browser'],
-                              display_status=display_status)
-            instance.save()
-            logger.info(u'报告存入数据库')
-            return HttpResponseRedirect('/success/')
+            # 处理用户体验测试报告
+            staus_is_ok = report_manager.process(request.FILES['zip'],
+                                                 data['system'],
+                                                 data['province'],
+                                                 data['city'],
+                                                 data['reporter'],
+                                                 data['test_id'],
+                                                 data['browser'])
+            if staus_is_ok:
+                return HttpResponseRedirect('/success/')
     else:
         form = ReportForm()
     return render_to_response('upload.html', {'form': form})
@@ -174,7 +114,7 @@ def success(request):
 
 # 巡检报告展示的页面
 def result(request):
-    logger.info(u'查看巡检结果')
+    logger.info(u'查看结果')
     t = get_template('result.html')
     systems = System.objects.all()
     context = {'systems': systems}
@@ -183,59 +123,77 @@ def result(request):
 
 
 # 查看图像显示
-def image_result(request, test_id, browser):
-    image_report_list = ImageReport.objects.filter(test_id=test_id).filter(browser=browser)
+def image_result(request, test_id):
+    image_report_list = ImageReport.objects.filter(test_id=test_id)
     logger.info(u'获得截图报告')
-    return render_to_response('image_result.html', {"image_reports": image_report_list})
+    image_report_info_list = []
+    for image_report in image_report_list:
+        image_info_list = ImageInfo.objects.filter(image_name=image_report.image_name)
+        image_urls = []
+        for image_info in image_info_list:
+            image_urls.append(image_info.image_url)
+        image_report_info = ImageReportInfo(image_name=image_report.image_name, image_urls=image_urls,
+                                            image_status=image_report.status)
+        image_report_info_list.append(image_report_info)
+    return render_to_response('image_result.html', {"image_report_info_list": image_report_info_list})
 
 
- # 查询报告
+    # 查询报告
+
+
 def search(request):
     q_system = request.GET.get('reporter')
     q_reporter = request.GET.get('reporter')
-    q_province = request.GET.get('province')
-    q_city = request.GET.get('city')
     q_begin_date = request.GET.get('begin_date')
     q_end_date = request.GET.get('end_date')
     end_date = datetime.datetime.strptime(q_end_date, '%Y-%m-%d')
     end_date = end_date + datetime.timedelta(days=1)
     q_end_date = end_date.strftime('%Y-%m-%d')
-    q_status = request.GET.get('status')
     report_list = Report.objects.all()
     logger.info(u'获得所有报告')
     if q_system != '':
         report_list = report_list.filter(system=q_system)
     if q_reporter != '':
         report_list = report_list.filter(reporter=q_reporter)
-    if q_province != '':
-        report_list = report_list.filter(province=q_province)
-    if q_city != '':
-        report_list = report_list.filter(city=q_city)
     if q_begin_date != '':
         report_list = report_list.filter(sub_time__gte=q_begin_date)
     if q_end_date != '':
         report_list = report_list.filter(sub_time__lt=q_end_date)
-    if q_status == 'fail':
-        report_list = report_list.exclude(total_num=F('pass_num'))
-    if q_status == 'pass':
-        report_list = report_list.filter(total_num=F('pass_num'))
     logger.info(u'获得满足查询条件的报告')
     # 对查询结果进行排序，先按系统名称的升序排序，然后按照提交日期降序排序。
     report_list = report_list.order_by('-sub_time')
     logger.info(u'对查询结果进行排序')
-    # 分页
-    paginator = Paginator(report_list, REPORT_PER_PAGE)
-    page = request.GET.get('page')
-    try:
-        reports = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        reports = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        reports = paginator.page(paginator.num_pages)
+    general_report_list = []
+    for report in report_list:
+        report_per_browser_list = ReportPerBrowser.objects.filter(test_id=report.test_id)
+        detail_report_list = []
+        for report_per_browser in report_per_browser_list:
+            detail_report = DetailReport(browser=report_per_browser.browser, province=report_per_browser.province,
+                                         city=report_per_browser.city,
+                                         total_num=report_per_browser.total_num, pass_num=report_per_browser.pass_num,
+                                         apdex=report_per_browser.apdex, report_url=report_per_browser.report_url)
+            detail_report_list.append(detail_report)
+        general_report = GeneralReport(test_id=report.test_id, system=report.system, reporter=report.reporter,
+                                       sub_time=report.sub_time, detail_report_list=detail_report_list)
+        general_report_list.append(general_report)
 
-    return render_to_response('report_list_div.html', {"reports": reports})
+    # # 分页
+    # paginator = Paginator(general_report_list, REPORT_PER_PAGE)
+    # page = request.GET.get('page')
+    # try:
+    #     general_report_list = paginator.page(page)
+    # except PageNotAnInteger:
+    #     # If page is not an integer, deliver first page.
+    #     general_report_list = paginator.page(1)
+    # except EmptyPage:
+    #     # If page is out of range (e.g. 9999), deliver last page of results.
+    #     general_report_list = paginator.page(paginator.num_pages)
+
+    context = {
+        'general_report_list': general_report_list,
+    }
+
+    return render_to_response('report_list_div.html', context)
 
 
 # 系统选择页面
@@ -541,19 +499,19 @@ def cluster_status(request):
     return HttpResponse(html)
 
 
-# 新增兼容性测试界面
-def add_compatibility_test(request):
+# 新增用户体验测试界面
+def add_user_experience_test(request):
     systems = System.objects.all()
     context = {'systems': systems}
-    t = get_template('add_compatibility_test_script.html')
+    t = get_template('add_user_experience_test_script.html')
     html = t.render(context)
     return HttpResponse(html)
 
 
-# 创建兼容性测试
+# 创建用户体验测试
 @csrf_exempt
-def create_compatibility_test_script(request):
-    logger.info(u'创建兼容性测试')
+def create_user_experience_test_script(request):
+    logger.info(u'创建用户体验测试')
     if request.method == 'POST':
         form = CompatibilityTestScriptForm(request.POST)
         if form.is_valid():
@@ -568,7 +526,7 @@ def create_compatibility_test_script(request):
             f = codecs.open(script_path_ie, 'w', 'utf-8')
             f.write(script_content)
             f.close()
-            logger.info(u'成功创建适用于IE浏览器的兼容性测试脚本文件')
+            logger.info(u'成功创建适用于IE浏览器的用户体验测试脚本文件')
 
             # 找到open browser关键字所在行
             pattern = re.compile(r'.*open browser.*ie')
@@ -587,7 +545,7 @@ def create_compatibility_test_script(request):
             f = codecs.open(script_path_firefox, 'w', 'utf-8')
             f.write(script_content_firefox)
             f.close()
-            logger.info(u'成功创建适用于FIREFOX浏览器的兼容性测试脚本文件')
+            logger.info(u'成功创建适用于FIREFOX浏览器的用户体验测试脚本文件')
 
             # 创建CHROME版本的脚本
             open_browser_by_chrome = open_browser_by_firefox + 'chrome'
@@ -596,41 +554,41 @@ def create_compatibility_test_script(request):
             f = codecs.open(script_path_chrome, 'w', 'utf-8')
             f.write(script_content_chrome)
             f.close()
-            logger.info(u'成功创建适用于CHROME浏览器的兼容性测试脚本文件')
+            logger.info(u'成功创建适用于CHROME浏览器的用户体验测试脚本文件')
 
             compatiblity_script_instance = CompatibilityScript(system=cur_system_instance,
                                                                script_path_ie=script_path_ie,
                                                                script_path_firefox=script_path_firefox,
                                                                script_path_chrome=script_path_chrome)
             compatiblity_script_instance.save()
-            logger.info(u'兼容性测试脚本已存入数据库')
+            logger.info(u'用户体验测试脚本已存入数据库')
             return HttpResponseRedirect('/createcompatibilitytestscriptsuccess/')
     else:
         form = CompatibilityTestScriptForm()
-    return render_to_response('add_compatibility_test_script.html', {'form': form})
+    return render_to_response('add_user_experience_test_script.html', {'form': form})
 
 
-# 成功创建兼容性测试脚本的页面
-def create_compatibility_test_script_success(request):
-    t = get_template('create_compatibility_test_script_success.html')
+# 成功创建用户体验测试脚本的页面
+def create_user_experience_test_script_success(request):
+    t = get_template('create_user_experience_test_script_success.html')
     html = t.render(Context())
     return HttpResponse(html)
 
 
-# 兼容性选择系统
-def create_compatibility_test_task(request):
-    logger.info(u'兼容性选择系统')
+# 选择系统进行用户体验测试
+def create_user_experience_test_task(request):
+    logger.info(u'选择系统进行用户体验测试')
     systems = System.objects.all()
     context = {'systems': systems}
-    t = get_template('create_compatibility_test_task.html')
+    t = get_template('create_user_experience_test_task.html')
     html = t.render(context)
     return HttpResponse(html)
 
 
-# 兼容性测试
+# 用户体验测试
 @csrf_exempt
-def compatibility_test(request):
-    logger.info(u'开始兼容性测试')
+def user_experience_test(request):
+    logger.info(u'开始用户体验测试')
     if request.method == 'POST':
         form = CompatibilityTestForm(request.POST)
         if form.is_valid():
@@ -643,7 +601,7 @@ def compatibility_test(request):
 
             test_id = time.strftime('%Y%m%d%H%M%S') + str(random.randint(1000, 9999))
 
-            taskinfo_ie8 = {'test_id': test_id, 'browser' : 'IE8', 'system': cur_system, 'executor': data['executor'],
+            taskinfo_ie8 = {'test_id': test_id, 'browser': 'IE8', 'system': cur_system, 'executor': data['executor'],
                             'province': data['province'], 'city': data['city']}
             taskinfo_ie8_json = json.dumps(taskinfo_ie8)
             para_ie8 = {'type': 'file', 'path': compatibility_script_instance.script_path_ie, 'str': taskinfo_ie8_json}
