@@ -1,5 +1,5 @@
 ﻿<div id="reportlist">
-	<table class="table">
+	<table class="table" >
 		<thead>
 			<tr>
 				<th >系统</th>
@@ -55,7 +55,20 @@
 				{% endif %}
 			</tr>
 		 	{% endfor %}
+			<tr>
+			   <td colspan="12">   </td>
+			</tr>
+			
 		{% endfor %}
 		</tbody>
     </table>
+	<ul class="pager">
+		{% if general_report_list.has_previous %}
+		<li><button type="button" class="btn btn-primary btn-xs" id= "pre" title={{ general_report_list.previous_page_number }}>上一页</button></li>
+		{% endif %}
+		<label>{{ general_report_list.number }} / {{ general_report_list.paginator.num_pages }} 页</label>
+		{% if general_report_list.has_next %}
+		<li><button type="button" class="btn btn-primary btn-xs" id= "next" title={{ general_report_list.next_page_number }}>下一页</button></li>
+		{% endif %}
+	</ul>
 </div>

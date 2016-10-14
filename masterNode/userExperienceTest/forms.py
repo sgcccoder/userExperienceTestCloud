@@ -53,8 +53,13 @@ class CompatibilityTestScriptForm(forms.Form):
     system = forms.CharField()
     content = forms.CharField(widget=forms.Textarea)
 
-class CompatibilityTestForm(forms.Form):
+# class CompatibilityTestForm(forms.Form):
+#         system = forms.CharField()
+#         executor = forms.CharField()
+#         province = forms.CharField()
+#         city = forms.CharField()
+
+
+class UserExperienceTestForm(forms.Form):
     system = forms.CharField()
     executor = forms.CharField()
-    province = forms.CharField()
-    city = forms.CharField()

@@ -11,14 +11,14 @@ import json
 
 class Auto:
     def startInspection(self):
-        out_dir = self.dir_of_report + os.path.sep + self.getNowTime()       
+        out_dir = self.dir_of_report + os.path.sep + self.getNowTime()
         self.report_path = out_dir + os.path.sep + 'report.html'
         arg = '-d ' + out_dir + ' ' + self.script_path
         self.logger.info(u'巡检脚本路径：' + self.script_path)
         self.logger.info(u'开始巡检')
         os.system('pybot ' + arg)
         self.logger.info(u'报告已生成：' + self.report_path)
-    
+
     def sendReport(self):
         try:
             report_dir = os.path.dirname(self.report_path)
@@ -28,18 +28,18 @@ class Auto:
             url = r'http://' + self.remote_server_ip + ':' + self.remote_server_port + r'/uploadreport/'
             self.logger.info('url: ' + url)
             # 在 urllib2 上注册 http 流处理句柄
-            register_openers()  
+            register_openers()
             # 开始对multipart/form-data编码
             # headers 包含必须的 Content-Type 和 Content-Length
             # datagen 是一个生成器对象，返回编码过后的参数
             datagen, headers = multipart_encode({
-                    'test_id' : self.test_id,
-                    'browser' : self.browser,
-                    'system'   : self.system, 
-                    'province' : self.province, 
-                    'city' : self.city, 
-                    'reporter' : self.reporter, 
-                    'zip' : zip_file })
+                'test_id' : self.test_id,
+                'browser' : self.browser,
+                'system'   : self.system,
+                'province' : self.province,
+                'city' : self.city,
+                'reporter' : self.reporter,
+                'zip' : zip_file })
             self.logger.info(u'完成待发送数据编码')
             # 创建请求对象
             request = urllib2.Request(url, datagen, headers)
@@ -48,8 +48,8 @@ class Auto:
             urllib2.urlopen(request, timeout=120)
             self.logger.info(u'巡检报告提交成功')
         except Exception, e:
-                self.logger.info(e)        
-    
+            self.logger.info(e)
+
     def getParameter(self):
         f = open( self.base_dir + os.path.sep + 'config.ini','r')
         try:
@@ -72,7 +72,7 @@ class Auto:
             self.province = lines[6]
             #城市
             self.city = lines[7]
-            
+
         finally:
             f.close()
 
@@ -82,21 +82,21 @@ class Auto:
             #files of cur file
             for filename in files:
                 zip.write(os.path.join(root,filename))
-        zip.close()            
+        zip.close()
 
     def getNowTime(self):
         return time.strftime("%Y%m%d%H%M%S",time.localtime(time.time()))
-    
+
     def init(self):
-        self.base_dir = os.path.dirname(os.path.abspath(__file__)) 
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
         path = self.base_dir + os.path.sep + 'log' + os.path.sep + 'Auto'
         if not os.path.isdir(path):
             os.makedirs(path)
         logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s:%(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
-                    datefmt='%a, %d %b %Y %H:%M:%S',
-                    filename =  path + os.path.sep + self.getNowTime() + '.log',
-                    filemode='w')
+                            format='%(asctime)s:%(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                            datefmt='%a, %d %b %Y %H:%M:%S',
+                            filename =  path + os.path.sep + self.getNowTime() + '.log',
+                            filemode='w')
         # 创建一个logger，用于日志记录
         self.logger = logging.getLogger('Auto')
         #创建一个handler，用于写入日志文件，文件名字为当前时间
@@ -112,9 +112,9 @@ class Auto:
         taskinfo_json = para['str']
         taskinfo = json.loads(taskinfo_json)
         self.system = taskinfo['system']
-        self.executor = taskinfo['executor']
-        self.province = taskinfo['province']
-        self.city = taskinfo['city']
+        self.reporter = taskinfo['executor']
+        # self.province = taskinfo['province']
+        # self.city = taskinfo['city']
         self.test_id = taskinfo['test_id']
         self.browser = taskinfo['browser']
         self.startInspection()

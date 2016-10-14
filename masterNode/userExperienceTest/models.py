@@ -22,6 +22,8 @@ class ReportPerBrowser(models.Model):
     report_url = models.CharField(u'报告url', max_length=200)
 
 class ImageInfo(models.Model):
+    test_id = models.CharField(u'用户体验测试编号', max_length=20)
+    browser = models.CharField(u'浏览器', max_length=100)
     image_name = models.CharField(u'截图名称', max_length=200)
     image_url = models.CharField(u'截图url', max_length=200)
 
@@ -68,5 +70,3 @@ class CompatibilityScript(models.Model):
     script_path_ie = models.CharField(u'ie的用户体验测试脚本的路径', max_length=200)
     script_path_firefox = models.CharField(u'firefox的用户体验测试脚本的路径', max_length=200)
     script_path_chrome = models.CharField(u'chrome的用户体验测试脚本的路径', max_length=200)
-
-

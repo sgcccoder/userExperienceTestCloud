@@ -52,7 +52,7 @@ class ImageProcess:
         for index in range(0, len(g)):
             res += math.sqrt((float(g[index]) / g_total) * (float(s[index]) / s_total))
 
-        return 1 if res > 0.95 else 0
+        return 1 if res > 0.9 else 0
 
     def split_image(self, image, part_size):
         pw, ph = part_size

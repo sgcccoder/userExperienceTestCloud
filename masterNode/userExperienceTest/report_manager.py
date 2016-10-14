@@ -103,7 +103,8 @@ class ReportManager:
                         base_image_path = base_detail_test_report['report_dir'] + os.path.sep + image_file_name
                         self.logger.info(base_image_path + ' vs ' + image_path )
                         if not image_processer.process(base_image_path, image_path):
-                            test_report[filename] = False
+                            test_report[image_file_name] = False
+                            self.logger.info(image_file_name + ': false ')
                             break  # 如果已经存在显示问题，不用再比
 
             self.reports[test_id] = test_report
@@ -130,12 +131,12 @@ class ReportManager:
                         image_path = detail_test_report['report_dir'] + os.path.sep + image_file_name
                         image_path = image_path.replace(settings.MEDIA_ROOT, '')
                         image_url = default_storage.url(image_path)
-                        image_info_instance = ImageInfo(image_name=image_file_name, image_url=image_url)
+                        image_info_instance = ImageInfo(test_id=test_id, browser=detail_test_report['browser'], image_name=image_file_name, image_url=image_url)
                         image_info_instance.save()
 
                 for image_file_name in test_report['image_file_names']:
                     image_report_instance = ImageReport(test_id=test_id, image_name=image_file_name,
-                                                        status=test_report[filename])
+                                                        status=test_report[image_file_name])
                     image_report_instance.save()
 
                 report_instance = Report(test_id=test_id, reporter=test_report['reporter'],
@@ -146,4 +147,3 @@ class ReportManager:
         except Exception, e:
             self.logger.error(e)
             return False
-

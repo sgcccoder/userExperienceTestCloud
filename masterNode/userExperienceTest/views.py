@@ -7,29 +7,25 @@ import os
 import random
 import re
 import time
-import zipfile
 
-from django.core.files.storage import default_storage
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import F
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.template.context import Context
 from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_exempt
-
 from masterNode import settings
+
 from .cluster import Cluster
-from .forms import ReportForm, TestCaseForm, TestSuiteForm, PlanForm, CompatibilityTestScriptForm, CompatibilityTestForm
-from .image_process import ImageProcess
+from .detail_report import DetailReport
+from .forms import ReportForm, TestCaseForm, TestSuiteForm, PlanForm, CompatibilityTestScriptForm, UserExperienceTestForm
+from .general_report import GeneralReport
+from .image_report_info import ImageReportInfo
 from .models import Report, System, TestCase, Plan, Task, TestSuite, CompatibilityScript, ReportPerBrowser, ImageInfo, \
     ImageReport
 from .my_proxy import MyProxy
 from .parser import Parser
 from .report_manager import ReportManager
-from .general_report import GeneralReport
-from .detail_report import DetailReport
-from .image_report_info import ImageReportInfo
 
 # Create your views here.
 
@@ -128,10 +124,16 @@ def image_result(request, test_id):
     logger.info(u'获得截图报告')
     image_report_info_list = []
     for image_report in image_report_list:
-        image_info_list = ImageInfo.objects.filter(image_name=image_report.image_name)
+        image_info_list = ImageInfo.objects.filter(image_name=image_report.image_name).filter(test_id=test_id)
         image_urls = []
-        for image_info in image_info_list:
-            image_urls.append(image_info.image_url)
+        image_info_ie8 = image_info_list.get(browser='IE8')
+        image_urls.append(image_info_ie8.image_url)
+        image_info_ie10 = image_info_list.get(browser='IE10')
+        image_urls.append(image_info_ie10.image_url)
+        image_info_fx = image_info_list.get(browser='Firefox')
+        image_urls.append(image_info_fx.image_url)
+        image_info_chrome = image_info_list.get(browser='Chrome')
+        image_urls.append(image_info_chrome.image_url)
         image_report_info = ImageReportInfo(image_name=image_report.image_name, image_urls=image_urls,
                                             image_status=image_report.status)
         image_report_info_list.append(image_report_info)
@@ -177,17 +179,17 @@ def search(request):
                                        sub_time=report.sub_time, detail_report_list=detail_report_list)
         general_report_list.append(general_report)
 
-    # # 分页
-    # paginator = Paginator(general_report_list, REPORT_PER_PAGE)
-    # page = request.GET.get('page')
-    # try:
-    #     general_report_list = paginator.page(page)
-    # except PageNotAnInteger:
-    #     # If page is not an integer, deliver first page.
-    #     general_report_list = paginator.page(1)
-    # except EmptyPage:
-    #     # If page is out of range (e.g. 9999), deliver last page of results.
-    #     general_report_list = paginator.page(paginator.num_pages)
+    # 分页
+    paginator = Paginator(general_report_list, REPORT_PER_PAGE)
+    page = request.GET.get('page')
+    try:
+        general_report_list = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        general_report_list = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        general_report_list = paginator.page(paginator.num_pages)
 
     context = {
         'general_report_list': general_report_list,
@@ -562,7 +564,7 @@ def create_user_experience_test_script(request):
                                                                script_path_chrome=script_path_chrome)
             compatiblity_script_instance.save()
             logger.info(u'用户体验测试脚本已存入数据库')
-            return HttpResponseRedirect('/createcompatibilitytestscriptsuccess/')
+            return HttpResponseRedirect('/createuserexperiencetestscriptsuccess/')
     else:
         form = CompatibilityTestScriptForm()
     return render_to_response('add_user_experience_test_script.html', {'form': form})
@@ -590,7 +592,7 @@ def create_user_experience_test_task(request):
 def user_experience_test(request):
     logger.info(u'开始用户体验测试')
     if request.method == 'POST':
-        form = CompatibilityTestForm(request.POST)
+        form = UserExperienceTestForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
             cur_system = data['system']
@@ -601,36 +603,35 @@ def user_experience_test(request):
 
             test_id = time.strftime('%Y%m%d%H%M%S') + str(random.randint(1000, 9999))
 
-            taskinfo_ie8 = {'test_id': test_id, 'browser': 'IE8', 'system': cur_system, 'executor': data['executor'],
-                            'province': data['province'], 'city': data['city']}
+            # taskinfo_ie8 = {'test_id': test_id, 'browser': 'IE8', 'system': cur_system, 'executor': data['executor'],
+            #                 'province': data['province'], 'city': data['city']}
+            taskinfo_ie8 = {'test_id': test_id, 'browser': 'IE8', 'system': cur_system, 'executor': data['executor']}
             taskinfo_ie8_json = json.dumps(taskinfo_ie8)
             para_ie8 = {'type': 'file', 'path': compatibility_script_instance.script_path_ie, 'str': taskinfo_ie8_json}
             para_list_ie8 = [para_ie8]
             proxy.add_job_with_type('inspect', 'IE8', 'exec', para_list_ie8)
 
-            # taskinfo_ie10 = {'test_id': test_id, 'browser' : 'IE10', 'system': cur_system, 'executor': data['executor'],
-            #                  'province': data['province'], 'city': data['city']}
-            # taskinfo_ie10_json = json.dumps(taskinfo_ie10)
-            # para_ie10 = {'type': 'file', 'path': compatibility_script_instance.script_path_ie,
-            #              'str': taskinfo_ie10_json}
-            # para_list_ie10 = [para_ie10]
-            # proxy.add_job_with_type('inspect', 'IE10', 'exec', para_list_ie10)
-            #
-            # taskinfo_fx = {'test_id': test_id, 'browser' : 'Firefox',  'system': cur_system, 'executor': data['executor'],
-            #                'province': data['province'], 'city': data['city']}
-            # taskinfo_fx_json = json.dumps(taskinfo_fx)
-            # para_fx = {'type': 'file', 'path': compatibility_script_instance.script_path_firefox,
-            #            'str': taskinfo_fx_json}
-            # para_list_fx = [para_fx]
-            # proxy = MyProxy(settings.CLUSTER_MASTER_URL)
-            # proxy.add_job_with_type('inspect', 'FX', 'exec', para_list_fx)
-            #
-            # taskinfo_chrome = {'test_id': test_id, 'browser' : 'Chrome',  'system': cur_system, 'executor': data['executor'],
-            #                    'province': data['province'], 'city': data['city']}
-            # taskinfo_chrome_json = json.dumps(taskinfo_chrome)
-            # para_chrome = {'type': 'file', 'path': compatibility_script_instance.script_path_chrome,
-            #                'str': taskinfo_chrome_json}
-            # para_chrome_list = [para_chrome]
-            # proxy.add_job_with_type('inspect', 'CHROME', 'exec', para_chrome_list)
+            taskinfo_ie10 = {'test_id': test_id, 'browser': 'IE10', 'system': cur_system, 'executor': data['executor']}
+            taskinfo_ie10_json = json.dumps(taskinfo_ie10)
+            para_ie10 = {'type': 'file', 'path': compatibility_script_instance.script_path_ie,
+                         'str': taskinfo_ie10_json}
+            para_list_ie10 = [para_ie10]
+            proxy.add_job_with_type('inspect', 'IE10', 'exec', para_list_ie10)
+
+            taskinfo_fx = {'test_id': test_id, 'browser': 'Firefox', 'system': cur_system, 'executor': data['executor']}
+            taskinfo_fx_json = json.dumps(taskinfo_fx)
+            para_fx = {'type': 'file', 'path': compatibility_script_instance.script_path_firefox,
+                       'str': taskinfo_fx_json}
+            para_list_fx = [para_fx]
+            proxy = MyProxy(settings.CLUSTER_MASTER_URL)
+            proxy.add_job_with_type('inspect', 'FX', 'exec', para_list_fx)
+
+            taskinfo_chrome = {'test_id': test_id, 'browser': 'Chrome', 'system': cur_system,
+                               'executor': data['executor']}
+            taskinfo_chrome_json = json.dumps(taskinfo_chrome)
+            para_chrome = {'type': 'file', 'path': compatibility_script_instance.script_path_chrome,
+                           'str': taskinfo_chrome_json}
+            para_chrome_list = [para_chrome]
+            proxy.add_job_with_type('inspect', 'CHROME', 'exec', para_chrome_list)
 
     return HttpResponseRedirect('/result/')
