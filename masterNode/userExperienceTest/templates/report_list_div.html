@@ -1,74 +1,27 @@
-﻿<div id="reportlist">
+﻿<div class="page-header">
+	<h3>电子商务平台</h3>
+</div>
+<div id="reportlist">
 	<table class="table" >
 		<thead>
 			<tr>
-				<th >系统</th>
-				<th>报告提交人员</th>
-				<th>报告提交时间</th>
                 <th>浏览器</th>
-				<th>省份</th>
-				<th>城市</th>
-				<th>检测功能点总数</th>
-				<th>通过检测的功能点数目</th>
-				<th>通过率</th>
+				<th>功能点通过情况</th>
 				<th>用户体验满意度</th>
-                <th>详细报告</th>
-                <th>界面状态</th>
+                <th>报告明细</th>
 			</tr>
 		</thead>  
 		<tbody>
 		{% for general_report in general_report_list %}
 			{% for detail_report in general_report.detail_report_list %}
 			<tr>
-				{% if forloop.first %}
-				<td rowspan="{{ general_report.detail_report_list|length }}"  style='vertical-align: middle;text-align: center;'>{{general_report.system}}</td>
-				<td rowspan="{{ general_report.detail_report_list|length }}"  style='vertical-align: middle;text-align: center;'>{{general_report.reporter}}</td>
-				<td rowspan="{{ general_report.detail_report_list|length }}"  style='vertical-align: middle;text-align: center;'>{{general_report.sub_time|date:"Y-m-d H:i:s"}}</td>
-				{% endif %}
-				{% if detail_report.total_num == detail_report.pass_num %}
-				<td class="good">{{detail_report.browser}}</td>
-				<td class="good">{{detail_report.province}}</td>
-				<td class="good">{{detail_report.city}}</td>
-				<td class="good">{{detail_report.total_num}}</td>
-				<td class="good">{{detail_report.pass_num}}</td>
-				<td class="good">{% widthratio detail_report.pass_num detail_report.total_num 100 %}%</td>
-				<td class="good">{{detail_report.apdex}}</td>
-				<td class="good">
-					<a href={{detail_report.report_url}}>查看详细报告</a>
-				</td>
-				{% else %}
-				<td class="bad">{{detail_report.browser}}</td>
-				<td class="bad">{{detail_report.province}}</td>
-				<td class="bad">{{detail_report.city}}</td>
-				<td class="bad">{{detail_report.total_num}}</td>
-				<td class="bad">{{detail_report.pass_num}}</td>
-				<td class="bad">{% widthratio detail_report.pass_num detail_report.total_num 100 %}%</td>
-				<td class="bad">{{detail_report.apdex}}</td>
-				<td class="bad">
-					<a href={{detail_report.report_url}}>查看详细报告</a>
-				</td>
-				{% endif %}
-				{% if forloop.first %}
-				<td rowspan="{{ general_report.detail_report_list|length }}" style='vertical-align: middle;text-align: center;'>
-					<a href="{% url 'imageresult' general_report.test_id %}">截图信息</a>
-				</td>
-				{% endif %}
+				<td>{{detail_report.browser}}</td>
+				<td>{{detail_report.pass_num}}</td>
+				<td>{{detail_report.apdex}}</td>
+				<td><a href={{detail_report.report_url}}>明细报告文件</a></td>
 			</tr>
 		 	{% endfor %}
-			<tr>
-			   <td colspan="12">   </td>
-			</tr>
-			
 		{% endfor %}
 		</tbody>
     </table>
-	<ul class="pager">
-		{% if general_report_list.has_previous %}
-		<li><button type="button" class="btn btn-primary btn-xs" id= "pre" title={{ general_report_list.previous_page_number }}>上一页</button></li>
-		{% endif %}
-		<label>{{ general_report_list.number }} / {{ general_report_list.paginator.num_pages }} 页</label>
-		{% if general_report_list.has_next %}
-		<li><button type="button" class="btn btn-primary btn-xs" id= "next" title={{ general_report_list.next_page_number }}>下一页</button></li>
-		{% endif %}
-	</ul>
 </div>

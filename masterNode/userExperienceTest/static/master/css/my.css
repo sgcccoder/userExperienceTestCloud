@@ -1,5 +1,3 @@
-/* reportlistS */
-
 #reportlist {
     width:90%;
 	margin-left:auto;
@@ -15,32 +13,32 @@
    text-align: left;
 }
 
+.btn-primary{
+    background-color: #397171;
+    border: 1px solid #397171;
+    color:  #fff;
+    text-shadow: none;
+}
+
+.page-heade{
+    background-color: #397171;
+    border: 1px solid #397171;
+}
+
+.first{
+    background-color: #397171;
+    border: 1px solid #397171;
+}
 
 table, th, tr, td{
    border: 1px solid gray;
    text-align:center;
 }
 
-td.good{
-  background:  rgb(153, 255, 102);
-}
-
-td.bad{
-  background: rgb(254, 67, 101);
-}
-
-tr.good{
-    background:  rgb(153, 255, 102);
-}
-
-tr.bad{
-    background: rgb(254, 67, 101);
-}
-
 .pagination{
   width: 20%;
-  margin-left: auto;  
-  margin-right: auto;  
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .first{

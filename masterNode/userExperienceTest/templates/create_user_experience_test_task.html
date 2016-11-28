@@ -7,7 +7,8 @@
     </head>
 	<body>
 		<title>创建用户体验测试任务</title>
-
+		<div class="first">
+		</div>
 		<div class="page-header">
 			<h3>创建用户体验测试任务</h3>
 		</div>
@@ -22,16 +23,15 @@
 						{% endfor %}
 					</select>
 				</div>
-                <div class="col-md-3">
-                    <a class="btn btn-primary" href="/adduserexperiencetest" role="button">增加用户体验测试脚本</a>
-                </div>
 			</div>
+			<br></br>
             <div class="form-group">
                 <label for="executor" class="col-md-1 control-label">测试人姓名</label>
                 <div class="col-md-2">
                     <input type="text"  name="executor" id="executor" >
                 </div>
             </div>
+			<br></br>
             <div class="form-group">
                 <label class="col-md-1 control-label">地区</label>
                 <div class="col-md-4">
@@ -41,20 +41,17 @@
                     </div>
                 </div>
             </div>
+			<br></br>
 			<div class="form-group">
-				<div class="col-md-offset-2 col-md-10">
-					<button id="CTButton" type="submit" class="btn btn-primary">用户体验测试</button>
-					<a id="state_text"></a>
+				<div class="col-md-2">
+					<button type="submit" class="btn btn-primary">用户体验测试</button>
+				</div>
+				<div class="col-md-2">
+				  <a class="btn btn-primary" href="/home" role="button">返回主页</a>
 				</div>
 			</div>
 		</form>
 
-	{% for field in form %}
-    <div class="fieldWrapper">
-        {{ field.errors }}
-        {{ field.label_tag }} {{ field }}
-    </div>
-	{% endfor %}
 
 	
 	</body>

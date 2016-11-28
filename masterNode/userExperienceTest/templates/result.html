@@ -6,143 +6,46 @@
     <meta name="author" content="zyl">
 </head>
 <body>
-<title>用户体验测试云平台</title>
-<!-- Fixed navbar -->
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <a class="navbar-brand" href="#">用户体验测试云平台</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-                <li class="active"><a href="/result">今日测试报告</a></li>
-                <li><a href="/export">导出测试报告</a></li>
-                <li><a href="/cluster">集群状态</a></li>
-            </ul>
-        </div><!--/.nav-collapse -->
-    </div>
-</nav>
-<div id="condition">
-    <div class="page-header">
-        <h3>查询条件</h3>
-    </div>
-    <form class="form-horizontal">
-        <div class="form-group">
-            <label for="system" class="col-md-1 control-label">系统</label>
-            <div class="col-md-2">
-                <select id="system">
-                    <option value="" selected>—— 系统 ——</option>
-                    {% for system in systems %}
-                    <option value={{system.name}}>{{system.name}}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <label for="reporter" class="col-md-2 control-label">报告提交人员</label>
-            <div class="col-md-2">
-                <input type="text" id="reporter">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="datepickerb" class="col-md-1 control-label">开始日期</label>
-            <div class="col-md-2">
-                <input type="text" id="datepickerb" name="begin_date"/>
-            </div>
-            <label for="datepickere" class="col-md-2 control-label">结束日期</label>
-            <div class="col-md-2">
-                <input type="text" id="datepickere" name="end_date"/>
-            </div>
-            <!--<div class="col-md-3">-->
-            <!--<input type="radio" name="status" value="all" checked="checked" />所有 -->
-            <!--<input type="radio" name="status" value="fail" />仅不通过 -->
-            <!--<input type="radio" name="status" value="pass" />仅通过 -->
-            <!--</div>-->
-            <div class="col-md-2">
-                <button type="button" id="btn_q" class="btn btn-primary">查询</button>
-            </div>
-        </div>
-    </form>
+<title>查看用户体验测试报告</title>
+<div class="first">
 </div>
-<h3>报告摘要</h3>
-{% include "report_list_div.html" %}
+<h1>用户体验测试报告</h1>
+<div class="page-header">
+    <h3>电子商务平台</h3>
+</div>
+<div id="reportlist">
+    <table class="table" >
+        <thead>
+        <tr>
+            <th>浏览器</th>
+            <th>功能点通过情况</th>
+            <th>用户体验满意度</th>
+            <th>报告文件</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for general_report in general_report_list %}
+            {% for detail_report in general_report.detail_report_list %}
+            <tr>
+                <td>{{detail_report.browser}}</td>
+                <td>{{detail_report.pass_num}}</td>
+                <td>{{detail_report.apdex}}</td>
+                <td><a href={{detail_report.report_url}}>报告文件</a></td>
+            </tr>
+           {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+    <h3>
+        注册页在不同浏览器间的显示存在差异
+    </h3>
+</div>
 
 <link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap.min.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap-theme.min.cs' %}"/>
-<link rel="stylesheet" type="text/css" href="{% static 'master/css/pikaday.css' %}"/>
 <link rel="stylesheet" type="text/css" href="{% static 'master/css/my.css' %}"/>
 
 <script src="{% static 'master/js/jquery-1.11.3.min.js' %}"></script>
 <script src="{% static 'master/js/bootstrap.min.js' %}"></script>
-<script src="{% static 'master/js/moment.js' %}"></script>
-<script src="{% static 'master/js/pikaday.js' %}"></script>
-<!--<script src="{% static 'master/js/distpicker.data.js' %}"></script>-->
-<!--<script src="{% static 'master/js/distpicker.js' %}"></script>-->
-
-<script type="text/javascript">
-    //初始化日期选择框
-    var picker_begin = new Pikaday({
-        field: document.getElementById("datepickerb"),
-        format: 'YYYY-MM-DD'
-    });
-    //设置开始日期为今天
-    picker_begin.setDate(new Date());
-    //初始化日期选择框
-    var picker_end = new Pikaday({
-        field: document.getElementById('datepickere'),
-        format: 'YYYY-MM-DD'
-    });
-    //设置结束日期为今天
-    picker_end.setDate(new Date());
-    //初始化地区选择
-    //			$(".distpicker1").distpicker({
-    //			autoSelect: false
-    //			});
-
-    $(document).ready(function () {
-        //默认查询今天的报告
-        $("#system").val('');
-        $("#reporter").val('');
-//			  $("#province").val('');
-//			  $("#city").val('');
-//			  $("input[type=radio][value=all]").attr("checked",'checked');
-        var today = $("#datepickerb").val();
-//			  var str_url = encodeURI('{% url 'search' %}?' + 'system=&reporter=&province=&city=&' + 'begin_date=' + today + '&end_date=' + today + '&status=all');
-        var str_url = encodeURI('{% url 'search' %}?' + 'system=&reporter=&' + 'begin_date=' + today + '&end_date=' + today);
-        $("#reportlist").load(str_url);
-
-        function getQueryParam() {
-            var q_system = $("#system").val();
-            var q_reporter = $("#reporter").val();
-//				var q_province = $("#province").val();
-//				var q_city = $("#city").val();
-            var q_begin_date = $("#datepickerb").val();
-            var q_end_date = $("#datepickere").val();
-//				var q_status = $("input[name='status'][type='radio']:checked").val();
-//				return 'system=' + q_system +'&reporter=' + q_reporter + '&province=' + q_province + '&city=' + q_city
-//						   + '&begin_date=' + q_begin_date + '&end_date=' + q_end_date + '&status=' + q_status;
-            return 'system=' + q_system + '&reporter=' + q_reporter + '&begin_date=' + q_begin_date + '&end_date=' + q_end_date;
-        }
-
-        var param = getQueryParam();
-
-        $("#btn_q").click(function () {
-            param = getQueryParam();
-            var strurl = encodeURI('{% url 'search' %}?' + param);
-            $("#reportlist").load(strurl);
-        });
-
-//        $("#reportlist").delegate("#pre", "click", function () {
-//            var pageNum = $("#pre").attr("title");
-//            var strurl = encodeURI('{% url 'search' %}?' + param + '&page=' + pageNum);
-//            $("#reportlist").load(strurl);
-//        });
-//
-//        $("#reportlist").delegate("#next", "click", function () {
-//            var pageNum = $("#next").attr("title");
-//            var strurl = encodeURI('{% url 'search' %}?' + param + '&page=' + pageNum);
-//            $("#reportlist").load(strurl);
-//        });
-
-    });
-</script>
 </body>
 </html>

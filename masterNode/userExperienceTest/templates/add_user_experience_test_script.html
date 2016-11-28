@@ -1,20 +1,20 @@
 {% load staticfiles %}
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <meta charset="utf-8">
     <meta name="author" content="zyl">
-</head>
+  </head>
 
-<body>
-<title>新增用户体验测试脚本</title>
-<div class="first">
-</div>
-<div class="page-header">
-    <h3>新增用户体验测试脚本</h3>
-</div>
-<form class="form-horizontal"  method="POST" action="/createuserexperiencetestscript/">{% csrf_token %}
-    <div class="form-group">
+  <body>
+    <title>新增用户体验测试脚本</title>
+    <div class="first">
+    </div>
+    <div class="page-header">
+      <h3>新增用户体验测试脚本</h3>
+    </div>
+    <form class="form-horizontal"  method="POST" action="/createuserexperiencetestscript/">{% csrf_token %}
+      <div class="form-group">
         <div class="form-group">
             <label for="system" class="col-md-2 control-label">系统名称</label>
             <div class="col-md-10">
@@ -26,36 +26,30 @@
                 </select>
             </div>
         </div>
-    </div>
-    <div class="form-group">
+      </div>
+      <br></br>
+      <div class="form-group">
         <label for="content" class="col-md-2 control-label">用户体验测试脚本</label>
         <div class="col-md-9">
-            <textarea class="form-control" name="content" id="content" rows="10"></textarea>
+            <textarea class="form-control" name="content" id="content" rows="12"></textarea>
         </div>
-    </div>
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-2">
+      </div>
+      <br></br>
+      <div class="form-group">
+        <div class="col-md-2">
             <button type="submit" class="btn btn-primary">完成</button>
         </div>
         <div class="col-md-2">
-            <a class="btn btn-primary" href="/createuserexperiencetesttask" role="button">返回</a>
+            <a class="btn btn-primary" href="/home" role="button">返回主页</a>
         </div>
     </div>
-</form>
-{##}
-{#	{% for field in form %}#}
-{#    <div class="fieldWrapper">#}
-{#        {{ field.errors }}#}
-{#        {{ field.label_tag }} {{ field }}#}
-{#    </div>#}
-{#	{% endfor %}#}
+  </form>
 
 
-</body>
-<link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap.min.css' %}"/>
-<link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap-theme.min.css' %}"/>
-<link rel="stylesheet" type="text/css" href="{% static 'master/css/my.css' %}"/>
+  </body>
 
-<script src= "{% static 'master/js/jquery-1.11.3.min.js' %}"></script>
-<script src= "{% static 'master/js/bootstrap.min.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'master/css/bootstrap.min.css' %}"/>
+  <link rel="stylesheet" type="text/css" href="{% static 'master/css/my.css' %}"/>
+  <script src= "{% static 'master/js/jquery-1.11.3.min.js' %}"></script>
+  <script src= "{% static 'master/js/bootstrap.min.js' %}"></script>
 </html>

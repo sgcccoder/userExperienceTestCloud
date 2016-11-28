@@ -14,6 +14,8 @@
 		<script src= "{% static 'master/js/pikaday.js' %}"></script>
 		<script src= "{% static 'master/js/distpicker.data.js' %}"></script>
 		<script src= "{% static 'master/js/distpicker.js' %}"></script>
+		
+		<title>用户体验测试云服务系统</title>
     </head>
 	
 	<body>
@@ -37,20 +39,31 @@
           </div>
 -->
           <div class="inner cover">
-            <h1 class="cover-heading">用户体验测试云平台</h1>
-			<a href="../result" id="manager"class="btn btn-lg btn-default">管理人员</a>
-{#			<a href="../selectsystem" id="executor" class="btn btn-lg btn-default">巡检人员</a>#}
-              <a href="../createuserexperiencetesttask" id="executor" class="btn btn-lg btn-default">测试人员</a>
+            <h1 class="cover-heading">用户体验测试云服务系统</h1>
+			<br></br>
+			<br></br>
+			  <div class="row">
+			    <div class="col-md-4"></div>
+				<div class="col-md-4">
+				  <a href="../result" id="result"class="btn btn-lg btn-default">查看用户体验测试报告</a>
+				</div>
+			  </div>
+			  <br></br>
+			  <div class="row">
+			    <div class="col-md-4"></div>
+				<div class="col-md-4">
+				  <a href="../adduserexperiencetest" id="addscript" class="btn btn-lg btn-default">增加用户体验测试脚本</a>
+				</div>
+			  </div>
+			  <br></br>
+			  <div class="row">
+			    <div class="col-md-4"></div>
+				<div class="col-md-4">
+				  <a href="../createuserexperiencetesttask" id="start" class="btn btn-lg btn-default">开始用户体验测试</a>
+				</div>
+			  </div>			  
           </div>
-
-          <div class="mastfoot">
-            <div class="inner">
-              <p>国家电网公司信息通信分公司</p>
-            </div>
-          </div>
-
         </div>
-
       </div>
 
     </div>

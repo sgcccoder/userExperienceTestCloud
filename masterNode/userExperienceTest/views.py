@@ -112,8 +112,25 @@ def success(request):
 def result(request):
     logger.info(u'查看结果')
     t = get_template('result.html')
-    systems = System.objects.all()
-    context = {'systems': systems}
+    report_list = Report.objects.all()
+    logger.info(u'获得所有报告')
+    general_report_list = []
+    for report in report_list:
+        report_per_browser_list = ReportPerBrowser.objects.filter(test_id=report.test_id)
+        detail_report_list = []
+        for report_per_browser in report_per_browser_list:
+            detail_report = DetailReport(browser=report_per_browser.browser, province=report_per_browser.province,
+                                     city=report_per_browser.city,
+                                     total_num=report_per_browser.total_num, pass_num=report_per_browser.pass_num,
+                                     apdex=report_per_browser.apdex, report_url=report_per_browser.report_url)
+            detail_report_list.append(detail_report)
+            general_report = GeneralReport(test_id=report.test_id, system=report.system, reporter=report.reporter,
+                                   sub_time=report.sub_time, detail_report_list=detail_report_list)
+        general_report_list.append(general_report)
+    context = {
+    'general_report_list': general_report_list,
+    }
+    logger.info(len(general_report_list))
     html = t.render(context)
     return HttpResponse(html)
 
@@ -144,27 +161,27 @@ def image_result(request, test_id):
 
 
 def search(request):
-    q_system = request.GET.get('reporter')
-    q_reporter = request.GET.get('reporter')
-    q_begin_date = request.GET.get('begin_date')
-    q_end_date = request.GET.get('end_date')
-    end_date = datetime.datetime.strptime(q_end_date, '%Y-%m-%d')
-    end_date = end_date + datetime.timedelta(days=1)
-    q_end_date = end_date.strftime('%Y-%m-%d')
+    # q_system = request.GET.get('reporter')
+    # q_reporter = request.GET.get('reporter')
+    # q_begin_date = request.GET.get('begin_date')
+    # q_end_date = request.GET.get('end_date')
+    # end_date = datetime.datetime.strptime(q_end_date, '%Y-%m-%d')
+    # end_date = end_date + datetime.timedelta(days=1)
+    # q_end_date = end_date.strftime('%Y-%m-%d')
     report_list = Report.objects.all()
     logger.info(u'获得所有报告')
-    if q_system != '':
-        report_list = report_list.filter(system=q_system)
-    if q_reporter != '':
-        report_list = report_list.filter(reporter=q_reporter)
-    if q_begin_date != '':
-        report_list = report_list.filter(sub_time__gte=q_begin_date)
-    if q_end_date != '':
-        report_list = report_list.filter(sub_time__lt=q_end_date)
-    logger.info(u'获得满足查询条件的报告')
+    # if q_system != '':
+    #     report_list = report_list.filter(system=q_system)
+    # if q_reporter != '':
+    #     report_list = report_list.filter(reporter=q_reporter)
+    # if q_begin_date != '':
+    #     report_list = report_list.filter(sub_time__gte=q_begin_date)
+    # if q_end_date != '':
+    #     report_list = report_list.filter(sub_time__lt=q_end_date)
+    # logger.info(u'获得满足查询条件的报告')
     # 对查询结果进行排序，先按系统名称的升序排序，然后按照提交日期降序排序。
-    report_list = report_list.order_by('-sub_time')
-    logger.info(u'对查询结果进行排序')
+    # report_list = report_list.order_by('-sub_time')
+    # logger.info(u'对查询结果进行排序')
     general_report_list = []
     for report in report_list:
         report_per_browser_list = ReportPerBrowser.objects.filter(test_id=report.test_id)
@@ -178,19 +195,19 @@ def search(request):
         general_report = GeneralReport(test_id=report.test_id, system=report.system, reporter=report.reporter,
                                        sub_time=report.sub_time, detail_report_list=detail_report_list)
         general_report_list.append(general_report)
-
-    # 分页
-    paginator = Paginator(general_report_list, REPORT_PER_PAGE)
-    page = request.GET.get('page')
-    try:
-        general_report_list = paginator.page(page)
-    except PageNotAnInteger:
-        # If page is not an integer, deliver first page.
-        general_report_list = paginator.page(1)
-    except EmptyPage:
-        # If page is out of range (e.g. 9999), deliver last page of results.
-        general_report_list = paginator.page(paginator.num_pages)
-
+    #
+    # # 分页
+    # paginator = Paginator(general_report_list, REPORT_PER_PAGE)
+    # page = request.GET.get('page')
+    # try:
+    #     general_report_list = paginator.page(page)
+    # except PageNotAnInteger:
+    #     # If page is not an integer, deliver first page.
+    #     general_report_list = paginator.page(1)
+    # except EmptyPage:
+    #     # If page is out of range (e.g. 9999), deliver last page of results.
+    #     general_report_list = paginator.page(paginator.num_pages)
+    #
     context = {
         'general_report_list': general_report_list,
     }
